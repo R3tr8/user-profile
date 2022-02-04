@@ -3,6 +3,29 @@ const prisma = new PrismaClient()
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
+app.post(`/signup`, async (req, res) => {
+    const { name, email, posts } = req.body
+  
+    const postData = posts
+      ? posts.map((post) => {
+          return { title: post.title, content: post.content || undefined }
+        })
+      : []
+  
+    const result = await prisma.user.create({
+      data: {
+        name,
+        email,
+        posts: {
+          create: postData,
+        },
+      },
+    })
+    res.json(result)
+  })
+
 
 async function main() {
     await prisma.user.create({
@@ -39,4 +62,8 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect()
+    })
+
+    const server = app.listen(4000, () => {
+        console.log('Server is running on http://localhost:4000')
     })
